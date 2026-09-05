@@ -1151,6 +1151,24 @@ func (app *App) prepareContextAttachments(ctx context.Context, payload map[strin
 	if record != nil {
 		preferredEmail = record.AccountEmail
 	}
+
+	requestedModel := stringValue(payload, "model", "")
+	targets := app.resolveTargetChain(requestedModel)
+	primaryProvider := ProviderDeepSeek
+	if len(targets) > 0 {
+		primaryProvider = ParseTarget(targets[0]).Provider
+	}
+	if primaryProvider != ProviderDeepSeek {
+		return PreparedRequestContext{
+			Payload:           payload,
+			SessionKey:        sessionKey,
+			ContextMode:       "inline",
+			UpstreamFiles:     upstreamFiles,
+			BoundAccountEmail: preferredEmail,
+			WorkspaceRoot:     workspaceRoot,
+		}, nil
+	}
+
 	if len(attachments) == 0 && !useGeneratedContextFiles {
 		return PreparedRequestContext{
 			Payload:           payload,
@@ -1335,13 +1353,14 @@ func (app *App) prepareContextAttachments(ctx context.Context, payload map[strin
 		rewritten["messages"] = plan.InlineMessages
 	}
 	rewritten["upstream_files"] = dedupeUpstreamFiles(upstreamFiles)
+	app.accounts.Release(acc)
 	cleanupAndRelease()
 	return PreparedRequestContext{
 		Payload:            rewritten,
 		SessionKey:         sessionKey,
 		ContextMode:        firstNonEmpty(plan.Mode, "inline"),
 		UpstreamFiles:      dedupeUpstreamFiles(upstreamFiles),
-		BoundAccount:       acc,
+		BoundAccount:       nil,
 		BoundAccountEmail:  acc.Email,
 		WorkspaceRoot:      workspaceRoot,
 		AttachmentFallback: false,
@@ -1512,6 +1531,25 @@ func isReadLikeToolName(name string) bool {
 }
 
 func (app *App) prepareStandardRequest(ctx context.Context, r *http.Request, body map[string]any, defaultModel, surface, authToken string) (StandardRequest, error) {
+	tempReq := buildChatStandardRequest(body, defaultModel, surface)
+	targets := app.resolveTargetChain(tempReq.ResolvedModel)
+	primaryProvider := ProviderDeepSeek
+	if len(targets) > 0 {
+		primaryProvider = ParseTarget(targets[0]).Provider
+	}
+
+	if primaryProvider != ProviderDeepSeek {
+		workspaceRoot := deriveWorkspaceRoot(body)
+		payload := injectWorkspaceNotice(body, workspaceRoot)
+		payload = app.rewriteCachedFileHints(payload, authToken)
+		req := buildChatStandardRequest(payload, defaultModel, surface)
+		req.SessionKey = deriveSessionKey(surface, authToken, payload)
+		req.WorkspaceRoot = workspaceRoot
+		req.ClientProfile = detectClientProfile(r, req.Tools)
+		req.ContextMode = "inline"
+		return req, nil
+	}
+
 	preprocessed, err := app.preprocessAttachments(body, authToken)
 	if err != nil {
 		return StandardRequest{}, err
