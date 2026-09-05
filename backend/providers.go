@@ -45,7 +45,7 @@ func ParseTarget(target string) TargetSpec {
 		return TargetSpec{Provider: ProviderDeepSeek, Model: m}
 	case strings.HasPrefix(m, "mistral") || strings.HasPrefix(m, "vibe") || strings.HasPrefix(m, "le-chat"):
 		return TargetSpec{Provider: ProviderMistral, Model: m}
-	case strings.HasPrefix(m, "gpt-") || strings.HasPrefix(m, "chatgpt") || strings.HasPrefix(m, "o1") || strings.HasPrefix(m, "o3") || strings.HasPrefix(m, "o4"):
+	case strings.HasPrefix(m, "gpt") || strings.HasPrefix(m, "chatgpt") || strings.HasPrefix(m, "o1") || strings.HasPrefix(m, "o3") || strings.HasPrefix(m, "o4"):
 		return TargetSpec{Provider: ProviderChatGPT, Model: m}
 	case strings.HasPrefix(m, "qwen") || strings.HasPrefix(m, "wanx"):
 		return TargetSpec{Provider: ProviderQwen, Model: m}
@@ -175,7 +175,7 @@ func (app *App) resolveTargetChain(modelName string) []string {
 		}
 	}
 	m := strings.ToLower(strings.TrimSpace(modelName))
-	if strings.HasPrefix(m, "gpt-") || strings.HasPrefix(m, "chatgpt") || strings.HasPrefix(m, "o1") || strings.HasPrefix(m, "o3") || strings.HasPrefix(m, "o4") {
+	if strings.HasPrefix(m, "gpt") || strings.HasPrefix(m, "chatgpt") || strings.HasPrefix(m, "o1") || strings.HasPrefix(m, "o3") || strings.HasPrefix(m, "o4") {
 		return []string{modelName, "qwen:qwen-max", "deepseek:deepseek-chat"}
 	}
 	return []string{modelName}
@@ -227,6 +227,8 @@ func (app *App) allSupportedModels() []map[string]any {
 		{ID: "gpt-4o", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (GPT-4o)", Thinking: false, Search: false},
 		{ID: "gpt-4o-mini", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (GPT-4o Mini)", Thinking: false, Search: false},
 		{ID: "gpt-5-6", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (GPT-5/4o Latest)", Thinking: false, Search: false},
+		{ID: "gpt-5.6", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (GPT-5.6)", Thinking: false, Search: false},
+		{ID: "gpt5.6", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (GPT-5.6)", Thinking: false, Search: false},
 		{ID: "chatgpt-auto", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT Auto", Thinking: false, Search: false},
 		{ID: "chatgpt-search", Family: "chatgpt", OwnedBy: "openai", Name: "ChatGPT (Search)", Thinking: false, Search: true},
 

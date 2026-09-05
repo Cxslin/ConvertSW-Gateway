@@ -715,12 +715,26 @@ async function executeChatGPTChat(prompt, opts = {}, onChunk = null) {
     stream: true
   });
 
+  if (res.statusCode !== 200) {
+    let errBody = '';
+    res.on('data', c => { errBody += c.toString('utf8'); });
+    await new Promise(r => res.on('end', r));
+    throw new Error(`ChatGPT upstream HTTP ${res.statusCode}: ${errBody.slice(0, 300)}`);
+  }
+
   return new Promise((resolve, reject) => {
     let fullText = '';
     let model = null;
     let convId = null;
     let assistantMsgId = null;
     let buf = '';
+
+    const emitDelta = (delta) => {
+      if (typeof delta === 'string' && delta.length > 0) {
+        fullText += delta;
+        if (onChunk) onChunk(delta);
+      }
+    };
 
     res.on('data', chunk => {
       buf += chunk.toString('utf8');
@@ -745,12 +759,20 @@ async function executeChatGPTChat(prompt, opts = {}, onChunk = null) {
 
           if (json.type === 'server_ste_metadata') model = json.metadata?.model_slug || null;
 
-          const patches = Array.isArray(json.v) ? json.v : [];
-          for (const p of patches) {
-            if (p.o === 'append' && p.p?.includes('/message/content/parts/0')) {
-              const delta = p.v;
-              fullText += delta;
-              if (onChunk && delta) onChunk(delta);
+          // 1. Format singkat tanpa path: {"v": "teks..."}
+          if (json.p === undefined && typeof json.v === 'string') {
+            emitDelta(json.v);
+          }
+          // 2. Format patch dengan path parts: {"p": "/message/content/parts/0", "v": "teks..."}
+          else if (typeof json.p === 'string' && json.p.includes('/message/content/parts') && typeof json.v === 'string') {
+            emitDelta(json.v);
+          }
+          // 3. Format sub-patches array (misal {"p": "", "o": "patch", "v": [...]})
+          else if (Array.isArray(json.v)) {
+            for (const p of json.v) {
+              if (p && typeof p.p === 'string' && p.p.includes('/message/content/parts') && typeof p.v === 'string') {
+                emitDelta(p.v);
+              }
             }
           }
         }
