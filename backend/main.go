@@ -6143,19 +6143,29 @@ func mediaDimensions(size string) (int, int) {
 func resolveMediaModel(requested string, image bool) string {
 	requested = strings.TrimSpace(requested)
 	if requested == "" {
-		return "qwen3.6-plus"
+		return "qwen3.7-plus"
 	}
 	aliases := map[string]string{
-		"dall-e-3": "qwen3.6-plus", "dall-e-2": "qwen3.6-plus", "gpt-image-1": "qwen3.6-plus",
-		"qwen-image": "qwen3.6-plus", "qwen-image-plus": "qwen3.6-plus", "qwen-image-turbo": "qwen3.6-plus",
-		"qwen-video": "qwen3.6-plus", "qwen-video-plus": "qwen3.6-plus", "qwen-video-turbo": "qwen3.6-plus",
-		"sora": "qwen3.6-plus", "sora-2": "qwen3.6-plus",
+		"dall-e-3": "qwen3.7-plus", "dall-e-2": "qwen3.7-plus", "gpt-image-1": "qwen3.7-plus",
+		"qwen-image": "qwen3.7-plus", "qwen-image-plus": "qwen3.7-plus", "qwen-image-turbo": "qwen3.7-plus",
+		"qwen-video": "qwen3.7-plus", "qwen-video-plus": "qwen3.7-plus", "qwen-video-turbo": "qwen3.7-plus",
+		"wanx2.1-t2i": "qwen3.7-plus", "wanx2.1-i2v": "qwen3.7-plus", "wanx-image": "qwen3.7-plus",
+		"wanx-video": "qwen3.7-plus", "wanx2.1": "qwen3.7-plus", "wanx": "qwen3.7-plus", "wanx-v2.1": "qwen3.7-plus",
+		"sora": "qwen3.7-plus", "sora-2": "qwen3.7-plus",
 	}
-	if v, ok := aliases[strings.ToLower(requested)]; ok {
+	low := strings.ToLower(requested)
+	if v, ok := aliases[low]; ok {
 		return v
 	}
-	mode := parseModelMode(requested, "qwen3.6-plus")
-	return resolveModel(mode.BaseModel)
+	if strings.Contains(low, "wanx") {
+		return "qwen3.7-plus"
+	}
+	mode := parseModelMode(requested, "qwen3.7-plus")
+	resolved := resolveQwenBaseModel(mode.BaseModel)
+	if resolved != "" {
+		return resolved
+	}
+	return "qwen3.7-plus"
 }
 
 var (

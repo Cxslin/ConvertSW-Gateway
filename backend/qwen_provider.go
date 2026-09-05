@@ -108,13 +108,14 @@ func resolveQwenBaseModel(model string) string {
 		return "qwen3.5-plus"
 	case "qwen3.5-omni", "qwen3.5-omni-plus", "qwen-omni":
 		return "qwen3.5-omni-plus"
-	case "wanx2.1-t2i", "wanx-image", "qwen-image":
-		return "qwen3.7-plus"
-	case "wanx2.1-i2v", "wanx-video", "qwen-video":
+	case "wanx2.1-t2i", "wanx-image", "qwen-image", "wanx2.1-i2v", "wanx-video", "qwen-video", "wanx2.1", "wanx", "wanx-v2.1":
 		return "qwen3.7-plus"
 	default:
 		if strings.HasPrefix(m, "qwen3.") {
 			return m
+		}
+		if strings.Contains(m, "wanx") {
+			return "qwen3.7-plus"
 		}
 		return "qwen3.8-max"
 	}
@@ -324,7 +325,7 @@ func (c *AlibabaQwenClient) VerifyTokenDetail(ctx context.Context, token, cookie
 	if token == "" {
 		return TokenVerifyResult{Valid: false, StatusCode: "invalid", Error: "Token kosong"}
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, qwenChatBaseURL+"/api/v2/users/me", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, qwenChatBaseURL+"/api/v2/chats?limit=1", nil)
 	if err != nil {
 		return TokenVerifyResult{Valid: false, StatusCode: "invalid", Error: err.Error()}
 	}
@@ -335,6 +336,13 @@ func (c *AlibabaQwenClient) VerifyTokenDetail(ctx context.Context, token, cookie
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
+		respBytes, _ := io.ReadAll(resp.Body)
+		var res map[string]any
+		if err := json.Unmarshal(respBytes, &res); err == nil {
+			if success, ok := res["success"].(bool); ok && !success {
+				return TokenVerifyResult{Valid: false, StatusCode: "invalid", Error: "Token Qwen kedaluwarsa atau tidak valid"}
+			}
+		}
 		return TokenVerifyResult{Valid: true, StatusCode: "valid"}
 	}
 	if resp.StatusCode == 401 || resp.StatusCode == 403 {
