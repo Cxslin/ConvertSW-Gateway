@@ -44,12 +44,12 @@ func defaultCombos() []ComboModel {
 		{
 			ID:          "combo-coding",
 			Name:        "Combo Coding & Agent",
-			Description: "Optimal untuk AI Agent (Cline, Roo Code, Cursor): DeepSeek R1 -> ChatGPT -> Qwen 2.5 72B -> Mistral",
+			Description: "Optimal untuk AI Agent (Cline, Roo Code, Cursor): Qwen Max -> Qwen 2.5 72B -> DeepSeek -> Mistral",
 			Strategy:    "fallback",
 			Targets: []string{
-				"deepseek:deepseek-reasoner",
-				"chatgpt:gpt-5-6",
+				"qwen:qwen-max",
 				"qwen:qwen2.5-72b-instruct",
+				"deepseek:deepseek-chat",
 				"mistral:mistral-large",
 			},
 			Enabled: true,

@@ -174,6 +174,10 @@ func (app *App) resolveTargetChain(modelName string) []string {
 			return targets
 		}
 	}
+	m := strings.ToLower(strings.TrimSpace(modelName))
+	if strings.HasPrefix(m, "gpt-") || strings.HasPrefix(m, "chatgpt") || strings.HasPrefix(m, "o1") || strings.HasPrefix(m, "o3") || strings.HasPrefix(m, "o4") {
+		return []string{modelName, "qwen:qwen-max", "deepseek:deepseek-chat"}
+	}
 	return []string{modelName}
 }
 
