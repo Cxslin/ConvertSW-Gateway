@@ -485,6 +485,7 @@ func (c *AlibabaQwenClient) StreamChat(ctx context.Context, token, cookies, chat
 				content := ""
 				phase := "answer"
 				if choices, ok := jsonEvt["choices"].([]any); ok && len(choices) > 0 {
+					receivedAny = true
 					if choice, ok := choices[0].(map[string]any); ok {
 						if delta, ok := choice["delta"].(map[string]any); ok {
 							content = stringValue(delta, "content", "")
@@ -500,9 +501,9 @@ func (c *AlibabaQwenClient) StreamChat(ctx context.Context, token, cookies, chat
 						}
 					}
 				}
-				if content != "" {
+				if content != "" || phase == "image_gen" {
 					receivedAny = true
-					if err := onEvent(UpstreamEvent{Type: "delta", Phase: phase, Content: content}); err != nil {
+					if err := onEvent(UpstreamEvent{Type: "delta", Phase: phase, Content: content, Raw: jsonEvt}); err != nil {
 						return err
 					}
 				}
@@ -604,25 +605,22 @@ func BuildQwenImagePayload(chatID, model, promptText, ratio string) map[string]a
 			"files":       []map[string]any{},
 			"timestamp":   ts,
 			"models":      []string{resolvedModel},
-			"chat_type":   "t2t",
+			"chat_type":   "t2i",
 			"feature_config": map[string]any{
-				"thinking_enabled":     false,
-				"output_schema":        "phase",
-				"auto_thinking":        false,
-				"thinking_mode":        "off",
-				"auto_search":          false,
-				"code_interpreter":     false,
-				"function_calling":     false,
-				"plugins_enabled":      true,
-				"image_generation":     true,
-				"default_aspect_ratio": ratio,
+				"output_schema":    "phase",
+				"thinking_enabled": false,
+				"thinking_format":  "summary",
+				"auto_thinking":    true,
+				"auto_search":      true,
 			},
-			"extra":         map[string]any{"meta": map[string]any{"subChatType": "t2i", "mode": "image_generation", "aspectRatio": ratio, "size": ratio}},
+			"extra":         map[string]any{"meta": map[string]any{"subChatType": "t2i"}},
 			"sub_chat_type": "t2i",
 			"parent_id":     nil,
 		}},
-		"timestamp": ts,
-		"size":      ratio,
+		"timestamp":                ts,
+		"size":                     ratio,
+		"share_id":                 "",
+		"origin_branch_message_id": "",
 	}
 }
 

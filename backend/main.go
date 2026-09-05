@@ -5738,9 +5738,13 @@ func (app *App) createImageURLs(ctx context.Context, model, promptText string, i
 
 			payload := BuildQwenImagePayload(chatID, model, promptText, ratio)
 			parts := []string{}
+			capturedURLs := []string{}
 			if err := app.alibabaQwen.StreamChat(ctx, acc.Token, acc.Cookies, chatID, payload, func(evt UpstreamEvent) error {
 				if evt.Content != "" {
 					parts = append(parts, evt.Content)
+					if (evt.Phase == "image_gen" || strings.Contains(evt.Content, "cdn.qwenlm.ai") || strings.Contains(evt.Content, "wanx")) && looksLikeImageURL(evt.Content) {
+						capturedURLs = append(capturedURLs, evt.Content)
+					}
 				}
 				if evt.Raw != nil {
 					parts = append(parts, mustJSON(evt.Raw))
@@ -5765,6 +5769,8 @@ func (app *App) createImageURLs(ctx context.Context, model, promptText string, i
 			}
 
 			urls := extractImageURLs(answerText)
+			urls = append(urls, capturedURLs...)
+			urls = dedupeStrings(urls)
 			app.logInfo(ctx, "图片生成链接提取完成", "attempt", attempt+1, "url_count", len(urls), "answer_len", len(answerText))
 			if len(urls) == 0 {
 				lastErr = fmt.Errorf("Image generation produced no image URL (chat_id=%s)", chatID)
