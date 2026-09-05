@@ -1,0 +1,83 @@
+# Git 相关
+.git
+.github
+.gitignore
+
+# 环境配置
+.env
+.env.local
+.env.*.local
+.venv
+venv
+env/
+
+# Python 缓存
+__pycache__/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 日志和数据
+*.log
+data/
+logs/
+outputs/
+temp/
+tmp/
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.turbo/
+
+# Go/local build outputs
+bin/
+backend/*.exe
+backend/*.exe~
+backend/*.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 文档（构建时不需要）
+*.md
+!README.md
+SESSION_*.md
+FIX_*.md
+QUICK_*.md
+START_*.md
+TOOL_*.md
+
+# 测试文件
+tests/
+test_*.py
+*_test.py
+claude_code_tool_stress_sandbox/
+hermes_tool_stress_sandbox*/
+openclaw_tool_stress_sandbox*/
+.openclaw/
+Hermes/
+工具链长任务ifacts/
+
+# 其他
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+**/*.tsbuildinfo
+frontend/node_modules/.tmp/

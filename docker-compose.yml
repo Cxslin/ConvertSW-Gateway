@@ -1,0 +1,20 @@
+services:
+  qwen2api:
+    image: ${QWEN2API_IMAGE:-yujunzhixue/qwen2api:latest}
+    container_name: qwen2api
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    ports:
+      - "${HOST_PORT:-7860}:${PORT:-7860}"
+    volumes:
+      - ${HOST_DATA_DIR:-./data}:/app/data
+      - ${HOST_LOGS_DIR:-./logs}:/app/logs
+    shm_size: "512m"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${PORT:-7860}/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3

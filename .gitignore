@@ -1,0 +1,58 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data and Logs
+data/
+logs/
+legacy/
+*legacy*.py
+
+# Tests and scripts
+test_*.py
+add_account.py
+fix_*.py
+
+# Env
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+.claude/
+.worktrees/
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.sw?
+
+# local cleanup
+tests/
+docs/superpowers/
+*.tsbuildinfo
+bin/
+*.log
+nul
+.openclaw/
+claude_code_tool_stress_sandbox/
+hermes_tool_stress_sandbox*/
+openclaw_tool_stress_sandbox*/
+Hermes/
+工具链长任务ifacts/
+qwen.mjs
+
+generate_*.py
+created_accounts.json
